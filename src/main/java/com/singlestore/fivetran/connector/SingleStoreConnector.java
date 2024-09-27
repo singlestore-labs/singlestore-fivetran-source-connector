@@ -1,13 +1,20 @@
 package com.singlestore.fivetran.connector;
 
-import io.grpc.*;
-
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
 import java.io.IOException;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SingleStoreConnector {
+
   private static final Logger logger = LoggerFactory.getLogger(SingleStoreConnector.class);
 
   public static void main(String[] args) throws InterruptedException, IOException, ParseException {
@@ -17,7 +24,7 @@ public class SingleStoreConnector {
 
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();
-    CommandLine cmd = null;
+    CommandLine cmd;
 
     try {
       cmd = parser.parse(options, args);
@@ -28,8 +35,8 @@ public class SingleStoreConnector {
       throw e;
     }
 
-    String portStr = cmd.getOptionValue("port", "50052");
-    int port = 50051;
+    String portStr = cmd.getOptionValue("port", "50051");
+    int port;
     try {
       port = Integer.parseInt(portStr);
     } catch (NumberFormatException e) {
@@ -46,7 +53,7 @@ public class SingleStoreConnector {
         .addService(new SingleStoreConnectorServiceImpl()).build();
 
     server.start();
-    logger.info(String.format("Connector gRPC server started"));
+    logger.info("Connector gRPC server started");
     server.awaitTermination();
   }
 }
