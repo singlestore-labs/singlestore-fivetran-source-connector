@@ -1,9 +1,6 @@
 package com.singlestore.fivetran.connector;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.singlestore.fivetran.connector.JDBCUtil.ThrowingConsumer;
 import fivetran_sdk.Checkpoint;
-import fivetran_sdk.Column;
 import fivetran_sdk.ConfigurationFormRequest;
 import fivetran_sdk.ConfigurationFormResponse;
 import fivetran_sdk.ConfigurationTest;
@@ -24,18 +21,14 @@ import fivetran_sdk.TextField;
 import fivetran_sdk.UpdateRequest;
 import fivetran_sdk.UpdateResponse;
 import io.grpc.stub.StreamObserver;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImplBase {
 
-  private static final Logger logger =
-      LoggerFactory.getLogger(SingleStoreConnectorServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(
+      SingleStoreConnectorServiceImpl.class);
 
   @Override
   public void configurationForm(ConfigurationFormRequest request,
@@ -88,8 +81,7 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
         .addAllTests(Arrays.asList(
             ConfigurationTest.newBuilder().setName("connect").setLabel("Tests connection").build(),
             ConfigurationTest.newBuilder().setName("table").setLabel("Tests table existence")
-                .build()
-        ))
+                .build()))
         .build());
 
     responseObserver.onCompleted();
@@ -98,14 +90,15 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
   @Override
   public void test(TestRequest request, StreamObserver<TestResponse> responseObserver) {
     String testName = request.getName();
-    SingleStoreConfiguration configuration =
-        new SingleStoreConfiguration(request.getConfigurationMap());
+    SingleStoreConfiguration configuration = new SingleStoreConfiguration(
+        request.getConfigurationMap());
+    SingleStoreConnection conn = new SingleStoreConnection(configuration);
 
     try {
       if (testName.equals("connect")) {
-        JDBCUtil.checkConnection(configuration);
+        conn.checkConnection();
       } else if (testName.equals("table")) {
-        JDBCUtil.checkTableExistence(configuration);
+        conn.checkTableExistence();
       }
     } catch (Exception e) {
       logger.warn("Test failed", e);
@@ -121,17 +114,20 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
   }
 
   @Override
-  public void schema(SchemaRequest request, StreamObserver<SchemaResponse> responseObserver) {
+  public void schema(SchemaRequest request, StreamObserver<SchemaResponse>
+      responseObserver) {
     SingleStoreConfiguration configuration = new SingleStoreConfiguration(
         request.getConfigurationMap());
+    SingleStoreConnection conn = new SingleStoreConnection(configuration);
 
     try {
-      SchemaList schema = JDBCUtil.getSchema(configuration);
-      responseObserver.onNext(SchemaResponse.newBuilder().setWithSchema(schema).build());
+      SchemaList schema = conn.getSchema();
+      responseObserver.onNext(SchemaResponse.newBuilder().setWithSchema(schema).
+          build());
       responseObserver.onCompleted();
     } catch (Exception e) {
       logger.warn(String.format("SchemaRequest failed for %s",
-          JDBCUtil.escapeTable(configuration.database(), configuration.table())), e);
+          SingleStoreConnection.escapeTable(configuration.database(), configuration.table())), e);
 
       responseObserver.onNext(
           SchemaResponse.newBuilder().setSchemaResponseNotSupported(true).build());
@@ -139,17 +135,20 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
     }
   }
 
+
   @Override
-  public void update(UpdateRequest request, StreamObserver<UpdateResponse> responseObserver) {
+  public void update(UpdateRequest request, StreamObserver<UpdateResponse>
+      responseObserver) {
     SingleStoreConfiguration configuration = new SingleStoreConfiguration(
         request.getConfigurationMap());
+    SingleStoreConnection conn = new SingleStoreConnection(configuration);
 
     try {
       State state;
       if (request.hasStateJson()) {
         state = State.fromJson(request.getStateJson());
       } else {
-        state = new State(JDBCUtil.getNumPartitions(configuration));
+        state = new State(conn.getNumPartitions());
       }
 
       responseObserver.onNext(UpdateResponse.newBuilder()
@@ -159,92 +158,68 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
               .build())
           .build());
 
-      JDBCUtil.observe(configuration, state, new ThrowingConsumer<ResultSet>() {
-
-        private String bytesToHex(byte[] bytes) {
-          char[] res = new char[bytes.length * 2];
-
-          int j = 0;
-          for (int i = 0; i < bytes.length; i++) {
-            res[j++] = Character.forDigit((bytes[i] >> 4) & 0xF, 16);
-            res[j++] = Character.forDigit((bytes[i] & 0xF), 16);
-          }
-
-          return new String(res);
+      conn.observe(state, (operation, partition, offset, row) -> {
+        switch (operation) {
+          case "Insert":
+            responseObserver.onNext(
+                UpdateResponse.newBuilder()
+                    .setOperation(
+                        Operation.newBuilder()
+                            .setRecord(
+                                Record.newBuilder()
+                                    .setSchemaName(configuration.database())
+                                    .setTableName(configuration.table())
+                                    .setType(OpType.UPSERT)
+                                    .putAllData(row)
+                                    .build())
+                            .build())
+                    .build());
+            break;
+          case "Update":
+            responseObserver.onNext(
+                UpdateResponse.newBuilder()
+                    .setOperation(
+                        Operation.newBuilder()
+                            .setRecord(
+                                Record.newBuilder()
+                                    .setSchemaName(configuration.database())
+                                    .setTableName(configuration.table())
+                                    .setType(OpType.UPDATE)
+                                    .putAllData(row)
+                                    .build())
+                            .build())
+                    .build());
+            break;
+          case "Delete":
+            responseObserver.onNext(
+                UpdateResponse.newBuilder()
+                    .setOperation(
+                        Operation.newBuilder()
+                            .setRecord(
+                                Record.newBuilder()
+                                    .setSchemaName(configuration.database())
+                                    .setTableName(configuration.table())
+                                    .setType(OpType.DELETE)
+                                    .putAllData(row)
+                                    .build())
+                            .build())
+                    .build());
+            break;
+          default:
+            return;
         }
 
-        final List<Column> rowColumns = JDBCUtil.getRowColumns(configuration);
-        final List<Column> keyColumns = JDBCUtil.getKeyColumns(configuration);
-
-        @Override
-        public void accept(ResultSet rs) throws SQLException, JsonProcessingException {
-          switch (rs.getString("Type")) {
-            case "Insert":
-              responseObserver.onNext(
-                  UpdateResponse.newBuilder()
-                      .setOperation(
-                          Operation.newBuilder()
-                              .setRecord(
-                                  Record.newBuilder()
-                                      .setSchemaName(configuration.database())
-                                      .setTableName(configuration.table())
-                                      .setType(OpType.UPSERT)
-                                      .putAllData(JDBCUtil.getRow(rs, rowColumns))
-                                      .build()
-                              ).build()
-                      ).build()
-              );
-              break;
-            case "Update":
-              responseObserver.onNext(
-                  UpdateResponse.newBuilder()
-                      .setOperation(
-                          Operation.newBuilder()
-                              .setRecord(
-                                  Record.newBuilder()
-                                      .setSchemaName(configuration.database())
-                                      .setTableName(configuration.table())
-                                      .setType(OpType.UPDATE)
-                                      .putAllData(JDBCUtil.getRow(rs, rowColumns))
-                                      .build()
-                              ).build()
-                      ).build()
-              );
-              break;
-            case "Delete":
-              responseObserver.onNext(
-                  UpdateResponse.newBuilder()
-                      .setOperation(
-                          Operation.newBuilder()
-                              .setRecord(
-                                  Record.newBuilder()
-                                      .setSchemaName(configuration.database())
-                                      .setTableName(configuration.table())
-                                      .setType(OpType.DELETE)
-                                      .putAllData(JDBCUtil.getRow(rs, keyColumns))
-                                      .build()
-                              ).build()
-                      ).build()
-              );
-              break;
-            default:
-              return;
-          }
-
-          Integer partition = rs.getInt("PartitionId");
-          String offset = bytesToHex(rs.getBytes("Offset"));
-          state.setOffset(partition, offset);
-          responseObserver.onNext(
-              UpdateResponse.newBuilder()
-                  .setOperation(
-                      Operation.newBuilder()
-                          .setCheckpoint(
-                              Checkpoint.newBuilder()
-                                  .setStateJson(state.toJson())
-                                  .build()).build()
-                  ).build()
-          );
-        }
+        state.setOffset(partition, offset);
+        responseObserver.onNext(
+            UpdateResponse.newBuilder()
+                .setOperation(
+                    Operation.newBuilder()
+                        .setCheckpoint(
+                            Checkpoint.newBuilder()
+                                .setStateJson(state.toJson())
+                                .build())
+                        .build())
+                .build());
       });
 
       responseObserver.onNext(UpdateResponse.newBuilder()
