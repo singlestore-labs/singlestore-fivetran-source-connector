@@ -7,6 +7,5 @@ build
 # Ignore IntelliJ IDEA directory
 .idea
 
-src/main/proto/*
 data-folder/*
 !data-folder/batch.json
