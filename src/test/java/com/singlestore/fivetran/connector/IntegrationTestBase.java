@@ -23,6 +23,7 @@ public class IntegrationTestBase {
     SingleStoreConnection conn = new SingleStoreConnection(conf);
     try (Statement stmt = conn.getConnection().createStatement()) {
       stmt.execute("SET GLOBAL enable_observe_queries=1");
+      stmt.execute(String.format("CREATE DATABASE IF NOT EXISTS %s", database));
     }
   }
 }
