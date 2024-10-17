@@ -299,7 +299,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
         DataType.STRING,
         DataType.STRING,
         DataType.STRING,
-        DataType.STRING,
+        DataType.BINARY,
         DataType.BINARY
     );
 
@@ -952,7 +952,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       // assertEquals("[1,2]", records.get(0).row.get("a").getJson());
     } finally {
       try (Statement stmt = conn.getConnection().createStatement()) {
-        stmt.execute("SET GLOBAL vector_type_project_format = 'BINARY'");
+        stmt.execute("SET vector_type_project_format = 'BINARY'");
       }
     }
   }
