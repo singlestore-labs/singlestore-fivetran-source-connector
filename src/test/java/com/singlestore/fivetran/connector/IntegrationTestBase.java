@@ -22,7 +22,7 @@ public class IntegrationTestBase {
 
   @BeforeAll
   public static void init() throws Exception {
-    String url = String.format("jdbc:singlestore://%s:%s/%s", host, port, database);
+    String url = String.format("jdbc:singlestore://%s:%s", host, port);
     Properties connectionProps = new Properties();
     connectionProps.put("user", user);
     connectionProps.put("password", password);

@@ -894,13 +894,20 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
 
     try {
       try (Statement stmt = conn.getConnection().createStatement()) {
-        stmt.execute("SET GLOBAL vector_type_project_format = 'JSON'");
         stmt.execute("DROP TABLE IF EXISTS observeVectorJson");
         stmt.execute("CREATE TABLE observeVectorJson(a VECTOR(2, I32))");
         stmt.execute("INSERT INTO observeVectorJson VALUES ('[1, 2]')");
       }
 
-      SchemaList schemaList = conn.getSchema();
+      final Exception[] observeException = new Exception[1];
+      SingleStoreConnection observeConn = new SingleStoreConnection(conf);
+      List<Record> records = new ArrayList<>();
+
+      try (Statement stmt = observeConn.getConnection().createStatement()) {
+        stmt.execute("SET vector_type_project_format = 'JSON'");
+      }
+
+      SchemaList schemaList = observeConn.getSchema();
       List<Schema> schemas = schemaList.getSchemasList();
       assertEquals(1, schemas.size());
 
@@ -919,10 +926,6 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       Column column = columns.get(0);
       assertEquals("a", column.getName());
       assertEquals(DataType.JSON, column.getType());
-
-      final Exception[] observeException = new Exception[1];
-      SingleStoreConnection observeConn = new SingleStoreConnection(conf);
-      List<Record> records = new ArrayList<>();
 
       Thread t = new Thread(() -> {
         try {
