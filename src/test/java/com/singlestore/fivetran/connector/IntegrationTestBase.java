@@ -1,7 +1,10 @@
 package com.singlestore.fivetran.connector;
 
 import com.google.common.collect.ImmutableMap;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.Properties;
 import org.junit.jupiter.api.BeforeAll;
 
 public class IntegrationTestBase {
@@ -19,9 +22,12 @@ public class IntegrationTestBase {
 
   @BeforeAll
   public static void init() throws Exception {
-    SingleStoreConfiguration conf = getConfig("init");
-    SingleStoreConnection conn = new SingleStoreConnection(conf);
-    try (Statement stmt = conn.getConnection().createStatement()) {
+    String url = String.format("jdbc:singlestore://%s:%s/%s", host, port, database);
+    Properties connectionProps = new Properties();
+    connectionProps.put("user", user);
+    connectionProps.put("password", password);
+    try (Connection conn = DriverManager.getConnection(url, connectionProps);
+        Statement stmt = conn.createStatement()) {
       stmt.execute("SET GLOBAL enable_observe_queries=1");
       stmt.execute(String.format("CREATE DATABASE IF NOT EXISTS %s", database));
     }

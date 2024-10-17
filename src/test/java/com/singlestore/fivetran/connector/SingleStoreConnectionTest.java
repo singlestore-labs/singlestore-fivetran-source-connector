@@ -892,59 +892,65 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
     SingleStoreConfiguration conf = getConfig("observeVectorJson");
     SingleStoreConnection conn = new SingleStoreConnection(conf);
 
-    try (Statement stmt = conn.getConnection().createStatement()) {
-      stmt.execute("SET GLOBAL vector_type_project_format = 'JSON'");
-      stmt.execute("DROP TABLE IF EXISTS observeVectorJson");
-      stmt.execute("CREATE TABLE observeVectorJson(a VECTOR(2, I32))");
-      stmt.execute("INSERT INTO observeVectorJson VALUES ('[1, 2]')");
-    }
-
-    SchemaList schemaList = conn.getSchema();
-    List<Schema> schemas = schemaList.getSchemasList();
-    assertEquals(1, schemas.size());
-
-    Schema schema = schemas.get(0);
-    assertEquals(database, schema.getName());
-
-    List<Table> tables = schema.getTablesList();
-    assertEquals(1, tables.size());
-
-    Table table = tables.get(0);
-    assertEquals("observeVectorJson", table.getName());
-
-    List<Column> columns = table.getColumnsList();
-    assertEquals(1, columns.size());
-
-    Column column = columns.get(0);
-    assertEquals("a", column.getName());
-    assertEquals(DataType.JSON, column.getType());
-
-    final Exception[] observeException = new Exception[1];
-    SingleStoreConnection observeConn = new SingleStoreConnection(conf);
-    List<Record> records = new ArrayList<>();
-
-    Thread t = new Thread(() -> {
-      try {
-        observeConn.observe(new State(8), (operation, partition, offset, row) -> {
-          if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
-              "Insert")) {
-            records.add(new Record(operation, row));
-          }
-        });
-      } catch (Exception e) {
-        observeException[0] = e;
+    try {
+      try (Statement stmt = conn.getConnection().createStatement()) {
+        stmt.execute("SET GLOBAL vector_type_project_format = 'JSON'");
+        stmt.execute("DROP TABLE IF EXISTS observeVectorJson");
+        stmt.execute("CREATE TABLE observeVectorJson(a VECTOR(2, I32))");
+        stmt.execute("INSERT INTO observeVectorJson VALUES ('[1, 2]')");
       }
-    });
-    t.start();
-    Thread.sleep(1000);
-    ((com.singlestore.jdbc.Connection) observeConn.getConnection()).cancelCurrentQuery();
-    Thread.sleep(1000);
-    t.interrupt();
 
-    assertTrue(observeException[0].getMessage().contains("Query execution was interrupted"));
+      SchemaList schemaList = conn.getSchema();
+      List<Schema> schemas = schemaList.getSchemasList();
+      assertEquals(1, schemas.size());
 
-    assertEquals(1, records.size());
-    // TODO: at the moment, OBSERVE returns wrong values when `vector_type_project_format` is JSON
-    // assertEquals("[1,2]", records.get(0).row.get("a").getJson());
+      Schema schema = schemas.get(0);
+      assertEquals(database, schema.getName());
+
+      List<Table> tables = schema.getTablesList();
+      assertEquals(1, tables.size());
+
+      Table table = tables.get(0);
+      assertEquals("observeVectorJson", table.getName());
+
+      List<Column> columns = table.getColumnsList();
+      assertEquals(1, columns.size());
+
+      Column column = columns.get(0);
+      assertEquals("a", column.getName());
+      assertEquals(DataType.JSON, column.getType());
+
+      final Exception[] observeException = new Exception[1];
+      SingleStoreConnection observeConn = new SingleStoreConnection(conf);
+      List<Record> records = new ArrayList<>();
+
+      Thread t = new Thread(() -> {
+        try {
+          observeConn.observe(new State(8), (operation, partition, offset, row) -> {
+            if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
+                "Insert")) {
+              records.add(new Record(operation, row));
+            }
+          });
+        } catch (Exception e) {
+          observeException[0] = e;
+        }
+      });
+      t.start();
+      Thread.sleep(1000);
+      ((com.singlestore.jdbc.Connection) observeConn.getConnection()).cancelCurrentQuery();
+      Thread.sleep(1000);
+      t.interrupt();
+
+      assertTrue(observeException[0].getMessage().contains("Query execution was interrupted"));
+
+      assertEquals(1, records.size());
+      // TODO: at the moment, OBSERVE returns wrong values when `vector_type_project_format` is JSON
+      // assertEquals("[1,2]", records.get(0).row.get("a").getJson());
+    } finally {
+      try (Statement stmt = conn.getConnection().createStatement()) {
+        stmt.execute("SET GLOBAL vector_type_project_format = 'BINARY'");
+      }
+    }
   }
 }
