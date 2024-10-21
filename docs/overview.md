@@ -17,8 +17,10 @@ platform.
 ## Features
 
 {% featureTable connector="singlestore" %}
-Capture Deletes:
-Custom Data:
+Capture Deletes: All tables and fields
+Column hashing:
+API Configurable:
+Private networking: AWS Private Link, GCP Private Service Connect
 {% /featureTable %}
 
 ------------------
