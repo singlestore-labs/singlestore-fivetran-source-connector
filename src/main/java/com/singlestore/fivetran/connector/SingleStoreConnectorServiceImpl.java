@@ -145,7 +145,7 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
 
     try {
       State state;
-      if (request.hasStateJson()) {
+      if (request.hasStateJson() && !request.getStateJson().equals("{}")) {
         state = State.fromJson(request.getStateJson());
       } else {
         state = new State(conn.getNumPartitions());
