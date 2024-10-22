@@ -15,6 +15,10 @@ import fivetran_sdk.Record;
 import fivetran_sdk.SchemaList;
 import fivetran_sdk.SchemaRequest;
 import fivetran_sdk.SchemaResponse;
+import fivetran_sdk.SchemaSelection;
+import fivetran_sdk.Selection;
+import fivetran_sdk.TableSelection;
+import fivetran_sdk.TablesWithSchema;
 import fivetran_sdk.TestRequest;
 import fivetran_sdk.TestResponse;
 import fivetran_sdk.TextField;
@@ -22,6 +26,9 @@ import fivetran_sdk.UpdateRequest;
 import fivetran_sdk.UpdateResponse;
 import io.grpc.stub.StreamObserver;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,6 +142,51 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
     }
   }
 
+  /**
+   * Returns a set of column names that should be selected. If no selection is provided - returns
+   * null. In this case all columns should be selected. If configured database and table are not
+   * selected - returns an empty list. In this case, no columns are populated.
+   *
+   * @param request an absolute URL giving the base location of the image
+   * @param conf    the location of the image, relative to the url argument
+   * @return set of column names to select, null if select all columns
+   */
+  private Set<String> getSelectedColumns(UpdateRequest request, SingleStoreConfiguration conf) {
+    if (!request.hasSelection()) {
+      return null;
+    }
+    Selection sel = request.getSelection();
+
+    if (!sel.hasWithSchema()) {
+      return null;
+    }
+    TablesWithSchema tablesWithSchema = sel.getWithSchema();
+
+    for (SchemaSelection schemaSelection : tablesWithSchema.getSchemasList()) {
+      if (!schemaSelection.getIncluded() || !schemaSelection.getSchemaName()
+          .equals(conf.database())) {
+        continue;
+      }
+
+      for (TableSelection tableSelection : schemaSelection.getTablesList()) {
+        if (!tableSelection.getIncluded() || !tableSelection.getTableName().equals(conf.table())) {
+          continue;
+        }
+
+        Map<String, Boolean> columns = tableSelection.getColumnsMap();
+        Set<String> selectedColumns = new HashSet<>();
+        for (String columnName : columns.keySet()) {
+          if (columns.get(columnName)) {
+            selectedColumns.add(columnName);
+          }
+        }
+
+        return selectedColumns;
+      }
+    }
+
+    return new HashSet<>();
+  }
 
   @Override
   public void update(UpdateRequest request, StreamObserver<UpdateResponse>
@@ -142,6 +194,7 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
     SingleStoreConfiguration configuration = new SingleStoreConfiguration(
         request.getConfigurationMap());
     SingleStoreConnection conn = new SingleStoreConnection(configuration);
+    Set<String> selectedColumns = getSelectedColumns(request, configuration);
 
     try {
       State state;
@@ -158,7 +211,7 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
               .build())
           .build());
 
-      conn.observe(state, (operation, partition, offset, row) -> {
+      conn.observe(state, selectedColumns, (operation, partition, offset, row) -> {
         switch (operation) {
           case "Insert":
             responseObserver.onNext(

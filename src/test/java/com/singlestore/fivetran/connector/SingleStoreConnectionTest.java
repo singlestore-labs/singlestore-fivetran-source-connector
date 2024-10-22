@@ -20,8 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -409,7 +411,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
     State state = new State(8);
     Thread t = new Thread(() -> {
       try {
-        observeConn.observe(state, (operation, partition, offset, row) -> {
+        observeConn.observe(state, null, (operation, partition, offset, row) -> {
           if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
               "Insert")) {
             records.add(new Record(operation, row));
@@ -470,7 +472,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
     records.clear();
     t = new Thread(() -> {
       try {
-        observeConn.observe(state, (operation, partition, offset, row) -> {
+        observeConn.observe(state, null, (operation, partition, offset, row) -> {
           if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
               "Insert")) {
             records.add(new Record(operation, row));
@@ -592,7 +594,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
     List<Record> records = new ArrayList<>();
     Thread t = new Thread(() -> {
       try {
-        observeConn.observe(new State(8), (operation, partition, offset, row) -> {
+        observeConn.observe(new State(8), null, (operation, partition, offset, row) -> {
           if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
               "Insert")) {
             records.add(new Record(operation, row));
@@ -929,7 +931,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
 
       Thread t = new Thread(() -> {
         try {
-          observeConn.observe(new State(8), (operation, partition, offset, row) -> {
+          observeConn.observe(new State(8), null, (operation, partition, offset, row) -> {
             if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
                 "Insert")) {
               records.add(new Record(operation, row));
@@ -955,5 +957,53 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
         stmt.execute("SET vector_type_project_format = 'BINARY'");
       }
     }
+  }
+
+  @Test
+  public void observeFilter() throws Exception {
+    SingleStoreConfiguration conf = getConfig("observeFilter");
+    SingleStoreConnection conn = new SingleStoreConnection(conf);
+
+    try (Statement stmt = conn.getConnection().createStatement()) {
+      stmt.execute("DROP TABLE IF EXISTS observeFilter");
+      stmt.execute(
+          "CREATE TABLE observeFilter (a INT, b INT, PRIMARY KEY(a));");
+    }
+
+    final Exception[] observeException = new Exception[1];
+    SingleStoreConnection observeConn = new SingleStoreConnection(conf);
+    List<Record> records = new ArrayList<>();
+    State state = new State(8);
+    Set<String> selectedColumns = new HashSet<>();
+    selectedColumns.add("a");
+    Thread t = new Thread(() -> {
+      try {
+        observeConn.observe(state, selectedColumns, (operation, partition, offset, row) -> {
+          if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
+              "Insert")) {
+            records.add(new Record(operation, row));
+            state.setOffset(partition, offset);
+          }
+        });
+      } catch (Exception e) {
+        observeException[0] = e;
+      }
+    });
+    t.start();
+
+    try (Statement stmt = conn.getConnection().createStatement()) {
+      stmt.execute("INSERT INTO observeFilter VALUES(1, 1)");
+    }
+
+    Thread.sleep(1000);
+    ((com.singlestore.jdbc.Connection) observeConn.getConnection()).cancelCurrentQuery();
+    Thread.sleep(1000);
+    t.interrupt();
+
+    assertTrue(observeException[0].getMessage().contains("Query execution was interrupted"));
+
+    assertEquals("Insert", records.get(0).operation);
+    assertEquals(1, records.get(0).row.get("a").getInt());
+    assertNull(records.get(0).row.get("b"));
   }
 }

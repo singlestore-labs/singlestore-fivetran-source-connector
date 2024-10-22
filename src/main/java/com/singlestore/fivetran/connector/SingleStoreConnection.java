@@ -251,11 +251,18 @@ public class SingleStoreConnection {
         throws JsonProcessingException;
   }
 
-  public void observe(State state, ObserveConsumer consumer) throws Exception {
+  public void observe(State state, Set<String> selectedColumns, ObserveConsumer consumer)
+      throws Exception {
     List<Column> columns = getSchema()
         .getSchemas(0)
         .getTables(0)
         .getColumnsList();
+    if (selectedColumns != null) {
+      columns = columns.stream()
+          .filter(column -> selectedColumns.contains(column.getName()))
+          .collect(Collectors.toList());
+    }
+
     List<Column> pkColumns = columns
         .stream()
         .filter(Column::getPrimaryKey)
