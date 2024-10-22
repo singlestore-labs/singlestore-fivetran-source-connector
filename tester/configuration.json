@@ -1,0 +1,11 @@
+{
+  "database": "tester",
+  "table": "t",
+  "password": "1",
+  "port": "3306",
+  "driver.parameters": "",
+  "host": "127.0.0.1",
+  "user": "root",
+  "ssl.server.cert": "",
+  "ssl.mode": "disable"
+}
