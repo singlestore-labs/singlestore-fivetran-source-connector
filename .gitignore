@@ -9,4 +9,3 @@ build
 
 src/main/proto/*
 tester/*
-!tester/configuration.json
