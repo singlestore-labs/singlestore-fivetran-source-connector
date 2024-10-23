@@ -7,13 +7,20 @@
 
 ## Steps for starting server
 
-1. Build the Jar
+1. Download proto files
+
+```
+wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/common.proto
+wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/connector_sdk.proto
+```
+
+2. Build the Jar
 
 ```
 gradle jar
 ```
 
-2. Run the Jar
+3. Run the Jar
 
 ```
 java -jar build/libs/singlestore-fivetran-connector-0.0.1.jar
@@ -47,7 +54,14 @@ SET GLOBAL enable_observe_queries = 1;
 export ROOT_PASSWORD="YOUR SINGLESTORE ROOT PASSWORD"
 ```
 
-5. Run tests
+5. Download proto files
+
+```
+wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/common.proto
+wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/connector_sdk.proto
+```
+
+6. Run tests
 
 ```
 gradle build
@@ -87,6 +101,8 @@ CREATE TABLE t(a INT PRIMARY KEY, b INT);
 5. Start Connector server
 
 ```
+wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/common.proto
+wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/connector_sdk.proto
 gradle jar
 java -jar build/libs/singlestore-fivetran-connector-0.0.1.jar
 ```
