@@ -29,12 +29,14 @@ java -jar build/libs/singlestore-fivetran-connector-0.0.1.jar
 ## Steps for running Java tests
 
 1. Start SingleStore cluster
+   You must insert a valid SingleStore license as SINGLESTORE_LICENSE and a password as
+   ROOT_PASSWORD
 
 ```
 docker run \
     -d --name singlestoredb-dev \
-    -e SINGLESTORE_LICENSE="YOUR SINGLESTORE LICENSE" \
-    -e ROOT_PASSWORD="YOUR SINGLESTORE ROOT PASSWORD" \
+    -e SINGLESTORE_LICENSE=<YOUR SINGLESTORE LICENSE> \
+    -e ROOT_PASSWORD=<YOUR SINGLESTORE ROOT PASSWORD> \
     -e SINGLESTORE_VERSION="8.7.16" \
     -p 3306:3306 -p 8080:8080 -p 9000:9000 \
     ghcr.io/singlestore-labs/singlestoredb-dev:latest
@@ -70,12 +72,14 @@ gradle build
 ## Steps for using Connector tester
 
 1. Start SingleStore cluster
+   You must insert a valid SingleStore license as SINGLESTORE_LICENSE and a password as
+   ROOT_PASSWORD
 
 ```
 docker run \
     -d --name singlestoredb-dev \
-    -e SINGLESTORE_LICENSE="YOUR SINGLESTORE LICENSE" \
-    -e ROOT_PASSWORD="YOUR SINGLESTORE ROOT PASSWORD" \
+    -e SINGLESTORE_LICENSE=<YOUR SINGLESTORE LICENSE> \
+    -e ROOT_PASSWORD=<YOUR SINGLESTORE ROOT PASSWORD> \
     -e SINGLESTORE_VERSION="8.7.16" \
     -p 3306:3306 -p 8080:8080 -p 9000:9000 \
     ghcr.io/singlestore-labs/singlestoredb-dev:latest
