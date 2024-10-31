@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,7 +199,7 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
         request.getConfigurationMap());
     SingleStoreConnection conn = new SingleStoreConnection(configuration);
     Set<String> selectedColumns = getSelectedColumns(request, configuration);
-    AtomicInteger recordsRead = new AtomicInteger();
+    AtomicLong recordsRead = new AtomicLong();
 
     try {
       State state;
