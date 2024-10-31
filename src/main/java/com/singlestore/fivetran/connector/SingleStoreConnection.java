@@ -19,18 +19,12 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 public class SingleStoreConnection {
@@ -282,7 +276,7 @@ public class SingleStoreConnection {
             state.offsetsAsSQL())))
     ) {
       ResultSet rs = timedRS.getResultSet();
-      
+
       while (timedRS.next()) {
         String operation = rs.getString("Type");
         int partition = rs.getInt("PartitionId");
