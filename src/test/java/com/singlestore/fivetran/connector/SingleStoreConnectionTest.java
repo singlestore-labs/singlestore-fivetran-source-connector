@@ -403,28 +403,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       stmt.execute("DROP TABLE IF EXISTS observe");
       stmt.execute(
           "CREATE TABLE observe (a INT, b INT, PRIMARY KEY(a));");
-    }
 
-    final Exception[] observeException = new Exception[1];
-    SingleStoreConnection observeConn = new SingleStoreConnection(conf);
-    List<Record> records = new ArrayList<>();
-    State state = new State(8);
-    Thread t = new Thread(() -> {
-      try {
-        observeConn.observe(state, null, (operation, partition, offset, row) -> {
-          if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
-              "Insert")) {
-            records.add(new Record(operation, row));
-            state.setOffset(partition, offset);
-          }
-        });
-      } catch (Exception e) {
-        observeException[0] = e;
-      }
-    });
-    t.start();
-
-    try (Statement stmt = conn.getConnection().createStatement()) {
       for (int i = 0; i < 10; i++) {
         stmt.execute(String.format("INSERT INTO observe VALUES(%d, 1)", i));
       }
@@ -436,12 +415,15 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       }
     }
 
-    Thread.sleep(1000);
-    ((com.singlestore.jdbc.Connection) observeConn.getConnection()).cancelCurrentQuery();
-    Thread.sleep(1000);
-    t.interrupt();
-
-    assertTrue(observeException[0].getMessage().contains("Query execution was interrupted"));
+    List<Record> records = new ArrayList<>();
+    State state = new State(8);
+    conn.observe(state, null, (operation, partition, offset, row) -> {
+      if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
+          "Insert")) {
+        records.add(new Record(operation, row));
+        state.setOffset(partition, offset);
+      }
+    });
 
     records.sort((r1, r2) -> {
       if (!r1.operation.equals(r2.operation)) {
@@ -469,22 +451,6 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       assertEquals((Integer) 2, records.get(i).row.get("b").getInt());
     }
 
-    records.clear();
-    t = new Thread(() -> {
-      try {
-        observeConn.observe(state, null, (operation, partition, offset, row) -> {
-          if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
-              "Insert")) {
-            records.add(new Record(operation, row));
-            state.setOffset(partition, offset);
-          }
-        });
-      } catch (Exception e) {
-        observeException[0] = e;
-      }
-    });
-    t.start();
-
     try (Statement stmt = conn.getConnection().createStatement()) {
       for (int i = 0; i < 10; i++) {
         stmt.execute(String.format("INSERT INTO observe VALUES(%d, 3)", i));
@@ -497,12 +463,14 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       }
     }
 
-    Thread.sleep(1000);
-    ((com.singlestore.jdbc.Connection) observeConn.getConnection()).cancelCurrentQuery();
-    Thread.sleep(1000);
-    t.interrupt();
-
-    assertTrue(observeException[0].getMessage().contains("Query execution was interrupted"));
+    records.clear();
+    conn.observe(state, null, (operation, partition, offset, row) -> {
+      if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
+          "Insert")) {
+        records.add(new Record(operation, row));
+        state.setOffset(partition, offset);
+      }
+    });
 
     records.sort((r1, r2) -> {
       if (!r1.operation.equals(r2.operation)) {
@@ -587,26 +555,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
               + "     unique key(intColumn),\n"
               + "     shard key(intColumn)\n"
               + " );");
-    }
 
-    final Exception[] observeException = new Exception[1];
-    SingleStoreConnection observeConn = new SingleStoreConnection(conf);
-    List<Record> records = new ArrayList<>();
-    Thread t = new Thread(() -> {
-      try {
-        observeConn.observe(new State(8), null, (operation, partition, offset, row) -> {
-          if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
-              "Insert")) {
-            records.add(new Record(operation, row));
-          }
-        });
-      } catch (Exception e) {
-        observeException[0] = e;
-      }
-    });
-    t.start();
-
-    try (Statement stmt = conn.getConnection().createStatement()) {
       stmt.execute("INSERT INTO `observeAllTypes` VALUES (\n" +
           "TRUE, " + // boolColumn
           "TRUE, " + // booleanColumn
@@ -704,12 +653,13 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       );
     }
 
-    Thread.sleep(1000);
-    ((com.singlestore.jdbc.Connection) observeConn.getConnection()).cancelCurrentQuery();
-    Thread.sleep(1000);
-    t.interrupt();
-
-    assertTrue(observeException[0].getMessage().contains("Query execution was interrupted"));
+    List<Record> records = new ArrayList<>();
+    conn.observe(new State(8), null, (operation, partition, offset, row) -> {
+      if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
+          "Insert")) {
+        records.add(new Record(operation, row));
+      }
+    });
 
     assertEquals(2, records.size());
     records.sort(Comparator.comparingInt(r -> r.row.get("intColumn").getInt()));
@@ -899,17 +849,12 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
         stmt.execute("DROP TABLE IF EXISTS observeVectorJson");
         stmt.execute("CREATE TABLE observeVectorJson(a VECTOR(2, I32))");
         stmt.execute("INSERT INTO observeVectorJson VALUES ('[1, 2]')");
-      }
-
-      final Exception[] observeException = new Exception[1];
-      SingleStoreConnection observeConn = new SingleStoreConnection(conf);
-      List<Record> records = new ArrayList<>();
-
-      try (Statement stmt = observeConn.getConnection().createStatement()) {
         stmt.execute("SET vector_type_project_format = 'JSON'");
       }
 
-      SchemaList schemaList = observeConn.getSchema();
+      List<Record> records = new ArrayList<>();
+
+      SchemaList schemaList = conn.getSchema();
       List<Schema> schemas = schemaList.getSchemasList();
       assertEquals(1, schemas.size());
 
@@ -929,25 +874,12 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       assertEquals("a", column.getName());
       assertEquals(DataType.JSON, column.getType());
 
-      Thread t = new Thread(() -> {
-        try {
-          observeConn.observe(new State(8), null, (operation, partition, offset, row) -> {
-            if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
-                "Insert")) {
-              records.add(new Record(operation, row));
-            }
-          });
-        } catch (Exception e) {
-          observeException[0] = e;
+      conn.observe(new State(8), null, (operation, partition, offset, row) -> {
+        if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
+            "Insert")) {
+          records.add(new Record(operation, row));
         }
       });
-      t.start();
-      Thread.sleep(1000);
-      ((com.singlestore.jdbc.Connection) observeConn.getConnection()).cancelCurrentQuery();
-      Thread.sleep(1000);
-      t.interrupt();
-
-      assertTrue(observeException[0].getMessage().contains("Query execution was interrupted"));
 
       assertEquals(1, records.size());
       // TODO: at the moment, OBSERVE returns wrong values when `vector_type_project_format` is JSON
@@ -968,39 +900,20 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       stmt.execute("DROP TABLE IF EXISTS observeFilter");
       stmt.execute(
           "CREATE TABLE observeFilter (a INT, b INT, PRIMARY KEY(a));");
+      stmt.execute("INSERT INTO observeFilter VALUES(1, 1)");
     }
 
-    final Exception[] observeException = new Exception[1];
-    SingleStoreConnection observeConn = new SingleStoreConnection(conf);
     List<Record> records = new ArrayList<>();
     State state = new State(8);
     Set<String> selectedColumns = new HashSet<>();
     selectedColumns.add("a");
-    Thread t = new Thread(() -> {
-      try {
-        observeConn.observe(state, selectedColumns, (operation, partition, offset, row) -> {
-          if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
-              "Insert")) {
-            records.add(new Record(operation, row));
-            state.setOffset(partition, offset);
-          }
-        });
-      } catch (Exception e) {
-        observeException[0] = e;
+    conn.observe(state, selectedColumns, (operation, partition, offset, row) -> {
+      if (operation.equals("Delete") || operation.equals("Update") || operation.equals(
+          "Insert")) {
+        records.add(new Record(operation, row));
+        state.setOffset(partition, offset);
       }
     });
-    t.start();
-
-    try (Statement stmt = conn.getConnection().createStatement()) {
-      stmt.execute("INSERT INTO observeFilter VALUES(1, 1)");
-    }
-
-    Thread.sleep(1000);
-    ((com.singlestore.jdbc.Connection) observeConn.getConnection()).cancelCurrentQuery();
-    Thread.sleep(1000);
-    t.interrupt();
-
-    assertTrue(observeException[0].getMessage().contains("Query execution was interrupted"));
 
     assertEquals("Insert", records.get(0).operation);
     assertEquals(1, records.get(0).row.get("a").getInt());

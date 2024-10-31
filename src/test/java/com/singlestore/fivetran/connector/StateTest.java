@@ -3,6 +3,7 @@ package com.singlestore.fivetran.connector;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 public class StateTest {
