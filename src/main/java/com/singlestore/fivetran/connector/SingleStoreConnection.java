@@ -268,15 +268,18 @@ public class SingleStoreConnection {
         .filter(Column::getPrimaryKey)
         .collect(Collectors.toList());
 
-    try (Statement stmt = getConnection().createStatement();
-        ResultSet rs = stmt.executeQuery(
-            String.format(
-                "OBSERVE * FROM %s BEGIN AT (%s)",
-                escapeTable(conf.database(), conf.table()),
-                state.offsetsAsSQL()))) {
-      while (rs.next()) {
+    try (
+        Statement stmt = getConnection().createStatement();
+        TimedResultSet timedRS = TimedResultSet.from(stmt.executeQuery(String.format(
+            "OBSERVE * FROM %s BEGIN AT (%s)",
+            escapeTable(conf.database(), conf.table()),
+            state.offsetsAsSQL())))
+    ) {
+      ResultSet rs = timedRS.getResultSet();
+
+      while (timedRS.next()) {
         String operation = rs.getString("Type");
-        Integer partition = rs.getInt("PartitionId");
+        int partition = rs.getInt("PartitionId");
         String offset = bytesToHex(rs.getBytes("Offset"));
 
         if (operation.equals("Delete")) {

@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,6 +190,8 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
     return new HashSet<>();
   }
 
+  int CHECKPOINT_BATCH_SIZE = 10_000;
+
   @Override
   public void update(UpdateRequest request, StreamObserver<UpdateResponse>
       responseObserver) {
@@ -195,6 +199,7 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
         request.getConfigurationMap());
     SingleStoreConnection conn = new SingleStoreConnection(configuration);
     Set<String> selectedColumns = getSelectedColumns(request, configuration);
+    AtomicLong recordsRead = new AtomicLong();
 
     try {
       State state;
@@ -263,6 +268,21 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
         }
 
         state.setOffset(partition, offset);
+        if (recordsRead.incrementAndGet() % CHECKPOINT_BATCH_SIZE == 0) {
+          responseObserver.onNext(
+              UpdateResponse.newBuilder()
+                  .setOperation(
+                      Operation.newBuilder()
+                          .setCheckpoint(
+                              Checkpoint.newBuilder()
+                                  .setStateJson(state.toJson())
+                                  .build())
+                          .build())
+                  .build());
+        }
+      });
+
+      if (recordsRead.incrementAndGet() % CHECKPOINT_BATCH_SIZE != 0) {
         responseObserver.onNext(
             UpdateResponse.newBuilder()
                 .setOperation(
@@ -273,7 +293,7 @@ public class SingleStoreConnectorServiceImpl extends ConnectorGrpc.ConnectorImpl
                                 .build())
                         .build())
                 .build());
-      });
+      }
 
       responseObserver.onNext(UpdateResponse.newBuilder()
           .setLogEntry(LogEntry.newBuilder()
