@@ -1,5 +1,11 @@
 package com.singlestore.fivetran.connector;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import fivetran_sdk.Column;
@@ -11,12 +17,6 @@ import fivetran_sdk.Table;
 import fivetran_sdk.ValueType;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -26,8 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.ImmutableMap;
 
 public class SingleStoreConnectionTest extends IntegrationTestBase {
 
@@ -150,7 +148,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
     assertEquals("getSchema", table.getName());
 
     List<Column> columns = table.getColumnsList();
-    assertEquals(44, columns.size());
+    assertEquals(45, columns.size());
 
     List<String> columnNames = Arrays.asList(
         "boolColumn",
@@ -196,7 +194,8 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
         "geographyColumn",
         "geographypointColumn",
         "vectorColumn",
-        "bsonColumn"
+        "bsonColumn",
+        "InternalId"
     );
 
     List<DecimalParams> decimalParameters = Arrays.asList(
@@ -237,6 +236,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
             .setScale(0)
             .setPrecision(10)
             .build(),
+        DecimalParams.newBuilder().build(),
         DecimalParams.newBuilder().build(),
         DecimalParams.newBuilder().build(),
         DecimalParams.newBuilder().build(),
@@ -302,6 +302,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
         DataType.STRING,
         DataType.STRING,
         DataType.BINARY,
+        DataType.BINARY,
         DataType.BINARY
     );
 
@@ -310,7 +311,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       assertEquals(columnNames.get(i), column.getName());
       assertEquals(decimalParameters.get(i), column.getDecimal());
       assertEquals(types.get(i), column.getType());
-      assertFalse(column.getPrimaryKey());
+      assertEquals(column.getName().equals("InternalId"), column.getPrimaryKey());
     }
   }
 
@@ -868,7 +869,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
       assertEquals("observeVectorJson", table.getName());
 
       List<Column> columns = table.getColumnsList();
-      assertEquals(1, columns.size());
+      assertEquals(2, columns.size());
 
       Column column = columns.get(0);
       assertEquals("a", column.getName());
