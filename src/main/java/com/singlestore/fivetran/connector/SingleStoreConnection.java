@@ -160,6 +160,15 @@ public class SingleStoreConnection {
       }
     }
 
+    // If table doesn't have PK - add an internal id instead
+    if (primaryKeyColumns.isEmpty()) {
+      Column.Builder internalId = Column.newBuilder()
+          .setName("InternalId")
+          .setType(DataType.BINARY)
+          .setPrimaryKey(true);
+      columns.add(internalId.build());
+    }
+
     return SchemaList.newBuilder()
         .addSchemas(
             Schema.newBuilder()
