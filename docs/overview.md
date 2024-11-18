@@ -12,6 +12,13 @@ transactional and analytical workloads with a unified engine. It provides real-t
 transactions, and streaming capabilities, enabling users to handle diverse workloads on a single
 platform.
 
+**Note:** this connector utilizes
+SingleStore's [OBSERVE](https://docs.singlestore.com/cloud/reference/sql-reference/data-manipulation-language-dml/observe/)
+queries which are currently in a preview state. As such, it is intended for experimental use only.
+
+**Warning**: This connector temporarily doesn't work
+with [Unlimited Storage Databases](https://docs.singlestore.com/db/v8.7/manage-data/local-and-unlimited-database-storage-concepts/)
+
 ------------------
 
 ## Features
@@ -58,9 +65,8 @@ Fivetran adds the following columns to table in your destination:
 
 - `_fivetran_deleted` (BOOLEAN) marks deleted rows in the source database.
 - `_fivetran_synced` (UTC TIMESTAMP) indicates when Fivetran last successfully synced the row.
-- `_fivetran_index` (INTEGER) shows the order of updates for tables that do not have a primary key.
-- `_fivetran_id` (STRING) is the hash of the non-Fivetran values of each row. It's a unique ID that
-  Fivetran uses to avoid duplicate rows in tables that do not have a primary key.
+- `InternalId` (BINARY) is a unique ID that connector adds to distinguish rows in tables that do not
+  have a primary key.
 
 ### Type transformations and mapping
 

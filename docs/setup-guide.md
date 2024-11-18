@@ -55,6 +55,20 @@ To authorize Fivetran to connect to your SinlgeStore database, follow these inst
 SET enable_observe_queries=1
 ```
 
+4. (Optional) Configure `snapshots_to_keep` and `snapshot_trigger_size` engine variables. At some
+   point, `offsets` will be considered stale, meaning the connector will no longer be able to
+   retrieve data associated with that logical point in the WAL (Write-Ahead Log). In practical
+   terms, `offsets` become stale once they are older than the oldest snapshot in the system. The
+   `snapshots_to_keep` and `snapshot_trigger_size` variables control the number and size of
+   snapshots, providing you with some control over the data retention window. If offsets become
+   stale, the connector will be unable to continue streaming change events, and the only way to
+   resolve this is to re-sync all data.
+
+```
+SET GLOBAL snapshot_trigger_size=10737418240
+SET GLOBAL snapshots_to_keep=4
+```
+
 ### <span class="step-item">Finish Fivetran configuration </span>
 
 1. Log in to your Fivetran account.
@@ -81,6 +95,14 @@ Fivetran performs the following SingleStore connection tests:
 - The Connection test checks if Fivetran can connect to your SingleStore cluster using credentials
   provided in the setup form
 - The Table test checks if specified table exists
+
+### <span class="step-item">Post setup changes (Optional)</span>
+
+It is recommended to update Fivetran sync frequency to run more often. This will reduce the
+likelihood of `offsets` becoming stale and help avoid the need for a full re-sync.
+
+1. Click on `Setup`
+2. Change `Sync frequency` to `15 minutes`
 
 ---
 
