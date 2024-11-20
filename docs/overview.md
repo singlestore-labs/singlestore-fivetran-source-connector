@@ -11,7 +11,7 @@ hidden: false
 
 > NOTE: this connector utilizes SingleStore's [OBSERVE](https://docs.singlestore.com/cloud/reference/sql-reference/data-manipulation-language-dml/observe/) queries that are currently in a preview state. As such, they are intended for experimental use only. queries which are currently in a preview state. As such, they are intended for experimental use only.
 
-> WARNING: This connector temporarily doesn't work with [Unlimited Storage Databases](https://docs.singlestore.com/db/v8.7/manage-data/local-and-unlimited-database-storage-concepts/).
+> WARNING: This connector currently doesn't work with [Unlimited Storage Databases](https://docs.singlestore.com/db/v8.7/manage-data/local-and-unlimited-database-storage-concepts/).
 
 ------------------
 
