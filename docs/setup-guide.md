@@ -89,7 +89,7 @@ Fivetran performs the following SingleStore connection tests:
 
 ### <span class="step-item">Post setup changes (Optional)</span>
 
-It is recommended to update Fivetran sync frequency to run more often. This will reduce the likelihood of `offsets` becoming stale and help avoid the need for a full re-sync.
+We recommend to adjust the sync frequency in Fivetran so that syncs run more often. This will reduce the likelihood of `offsets` becoming stale and help avoid the need for a full re-sync.
 
 1. Click on `Setup`
 2. Change `Sync frequency` to `15 minutes`
