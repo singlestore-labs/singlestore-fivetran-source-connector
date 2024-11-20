@@ -45,9 +45,7 @@ To authorize Fivetran to connect to your SinlgeStore database, follow these inst
 
 ### <span class="step-item">Configure SingleStore</span>
 
-1. Configure your firewall and/or other access control systems to allow incoming connections to your
-   SingleStore instance from [Fivetran's IPs](https://fivetran.com/docs/using-fivetran/ips) for your
-   region.
+1. Configure your firewall and/or other access control systems to allow incoming connections to your SingleStore instance from [Fivetran's IPs](https://fivetran.com/docs/using-fivetran/ips) for your region.
 2. Ensure that the SingleStore database user has the `SELECT` permission.
 3. Enable support of OBSERVE queries
 
@@ -55,14 +53,7 @@ To authorize Fivetran to connect to your SinlgeStore database, follow these inst
 SET enable_observe_queries=1
 ```
 
-4. (Optional) Configure `snapshots_to_keep` and `snapshot_trigger_size` engine variables. At some
-   point, `offsets` will be considered stale, meaning the connector will no longer be able to
-   retrieve data associated with that logical point in the WAL (Write-Ahead Log). In practical
-   terms, `offsets` become stale once they are older than the oldest snapshot in the system. The
-   `snapshots_to_keep` and `snapshot_trigger_size` variables control the number and size of
-   snapshots, providing you with some control over the data retention window. If offsets become
-   stale, the connector will be unable to continue streaming change events, and the only way to
-   resolve this is to re-sync all data.
+4. (Optional) Configure `snapshots_to_keep` and `snapshot_trigger_size` [engine variables](https://docs.singlestore.com/cloud/reference/configuration-reference/engine-variables/list-of-engine-variables/). At some point, `offsets` will be considered stale, meaning the connector will no longer be able to retrieve data associated with that logical point in the WAL (Write-Ahead Log). In practical terms, `offsets` become stale once they are older than the oldest snapshot in the system. The `snapshots_to_keep` and `snapshot_trigger_size` variables control the number and size of snapshots providing you with some control over the data retention window. If you increase `snapshots_to_keep` or `snapshot_trigger_size`, offsets will become stale later. If offsets become stale, the connector will be unable to continue streaming change events, and the only way to resolve this is to re-sync all data.
 
 ```
 SET GLOBAL snapshot_trigger_size=10737418240

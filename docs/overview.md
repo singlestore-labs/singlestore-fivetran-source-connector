@@ -7,13 +7,9 @@ hidden: false
 
 # SingleStore {% typeBadge connector="singlestore" /%} {% availabilityBadge connector="singlestore" /%}
 
-[SingleStore](https://www.singlestore.com/) is a distributed, cloud-native database that can handle
-transactional and analytical workloads with a unified engine. It provides real-time analytics,
-transactions, and streaming capabilities, enabling users to handle diverse workloads on a single
-platform.
+[SingleStore](https://www.singlestore.com/) is a distributed, cloud-native database that can handle transactional and analytical workloads with a unified engine. It provides real-time analytics, transactions, and streaming capabilities, enabling users to handle diverse workloads on a single platform.
 
-> NOTE: this connector utilizes SingleStore's [OBSERVE](https://docs.singlestore.com/cloud/reference/sql-reference/data-manipulation-language-dml/observe/) queries that are currently in a preview state. As such, they are intended for experimental use only.
-queries which are currently in a preview state. As such, they are intended for experimental use only.
+> NOTE: this connector utilizes SingleStore's [OBSERVE](https://docs.singlestore.com/cloud/reference/sql-reference/data-manipulation-language-dml/observe/) queries that are currently in a preview state. As such, they are intended for experimental use only. queries which are currently in a preview state. As such, they are intended for experimental use only.
 
 > WARNING: This connector temporarily doesn't work with [Unlimited Storage Databases](https://docs.singlestore.com/db/v8.7/manage-data/local-and-unlimited-database-storage-concepts/).
 
@@ -32,30 +28,23 @@ Private networking: AWS Private Link, GCP Private Service Connect
 
 ## Setup guide
 
-Follow our [step-by-step SingleStore setup guide](/docs/{path}/setup-guide) to connect
-SingleStore with your destination using Fivetran connectors.
+Follow our [step-by-step SingleStore setup guide](/docs/{path}/setup-guide) to connect SingleStore with your destination using Fivetran connectors.
 
 ------------------
 
 ## Sync overview
 
-Once Fivetran is connected to your SingleStore deployment, the connector fetches an initial
-consistent snapshot of all data from your SingleStore table. Once the initial sync is complete, the
-connector stream UPDATE/DELETE/INSERT events made to your SingleStore table.
+Once Fivetran is connected to your SingleStore deployment, the connector fetches an initial consistent snapshot of all data from your SingleStore table. Once the initial sync is complete, the connector stream UPDATE/DELETE/INSERT events made to your SingleStore table.
 
-SingleStore connector
-uses [OBSERVE](https://docs.singlestore.com/cloud/reference/sql-reference/data-manipulation-language-dml/observe/)
-to capture change events.
+SingleStore connector uses [OBSERVE](https://docs.singlestore.com/cloud/reference/sql-reference/data-manipulation-language-dml/observe/) to capture change events.
 
-Connector does not support handling schema changes. You cannot run `ALTER` and `DROP` queries
-while the `OBSERVE` query is running.
+Connector does not support handling schema changes. You cannot run `ALTER` and `DROP` queries while the `OBSERVE` query is running.
 
 ------------------
 
 ## Schema information
 
-Fivetran replicates a single table of the SingleStore database. Selected SingleStore database is
-mapped to Fivetran schema.
+Fivetran replicates a single table of the SingleStore database. Selected SingleStore database is mapped to Fivetran schema.
 
 ### Fivetran-generated columns
 
@@ -67,12 +56,9 @@ Fivetran adds the following columns to table in your destination:
 
 ### Type transformations and mapping
 
-As we extract your data, we match SingleStore data types in your SingleStore database to types that
-Fivetran supports. If we don't support a specific data type, we automatically change that type to
-the closest supported type.
+As we extract your data, we match SingleStore data types in your SingleStore database to types that Fivetran supports. If we don't support a specific data type, we automatically change that type to the closest supported type.
 
-The following table illustrates how we transform your SingleStore data types into Fivetran supported
-types:
+The following table illustrates how we transform your SingleStore data types into Fivetran supported types:
 
 | SingleStore Data Type | Fivetran Data Type | Notes                                                                                                                              |
 |-----------------------|--------------------|------------------------------------------------------------------------------------------------------------------------------------|
