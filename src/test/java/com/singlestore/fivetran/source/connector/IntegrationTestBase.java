@@ -1,4 +1,4 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;

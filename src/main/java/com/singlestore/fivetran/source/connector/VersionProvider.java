@@ -1,4 +1,4 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +8,7 @@ import java.util.Properties;
 
 public class VersionProvider {
 
-  private static final Logger log = LoggerFactory.getLogger(VersionProvider.class);
+  private static final Logger logger = LoggerFactory.getLogger(VersionProvider.class);
   private static final String VERSION;
 
   static {
@@ -18,7 +18,7 @@ public class VersionProvider {
       props.load(VersionProvider.class.getResourceAsStream("/version.properties"));
       versionProperty = props.getProperty("version", versionProperty).trim();
     } catch (IOException ex) {
-      log.warn("Error while loading version:", ex);
+      logger.warn("Error while loading version:", ex);
     }
     VERSION = versionProperty;
   }

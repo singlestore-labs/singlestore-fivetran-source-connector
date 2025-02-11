@@ -1,4 +1,4 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,13 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
-import fivetran_sdk.Column;
-import fivetran_sdk.DataType;
-import fivetran_sdk.DecimalParams;
-import fivetran_sdk.Schema;
-import fivetran_sdk.SchemaList;
-import fivetran_sdk.Table;
-import fivetran_sdk.ValueType;
+import fivetran_sdk.v2.Column;
+import fivetran_sdk.v2.DataType;
+import fivetran_sdk.v2.DecimalParams;
+import fivetran_sdk.v2.Schema;
+import fivetran_sdk.v2.SchemaList;
+import fivetran_sdk.v2.Table;
+import fivetran_sdk.v2.ValueType;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -309,7 +309,7 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
     for (int i = 0; i < columns.size(); i++) {
       Column column = columns.get(i);
       assertEquals(columnNames.get(i), column.getName());
-      assertEquals(decimalParameters.get(i), column.getDecimal());
+      assertEquals(decimalParameters.get(i), column.getParams().getDecimal());
       assertEquals(types.get(i), column.getType());
       assertEquals(column.getName().equals("InternalId"), column.getPrimaryKey());
     }

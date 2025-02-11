@@ -1,4 +1,4 @@
-# SingleStore Fivetran Connector
+# SingleStore Fivetran Source Connector
 
 ## Pre-requisites for development
 
@@ -10,8 +10,8 @@
 1. Download proto files
 
 ```
-wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/common.proto
-wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/connector_sdk.proto
+wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/common.proto
+wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/connector_sdk.proto
 ```
 
 2. Build the Jar
@@ -23,7 +23,7 @@ gradle jar
 3. Run the Jar
 
 ```
-java -jar build/libs/singlestore-fivetran-connector-0.0.3.jar
+java -jar build/libs/singlestore-fivetran-source-connector-0.0.4.jar
 ```
 
 ## Steps for running Java tests
@@ -59,8 +59,8 @@ export ROOT_PASSWORD="YOUR SINGLESTORE ROOT PASSWORD"
 5. Download proto files
 
 ```
-wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/common.proto
-wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/connector_sdk.proto
+wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/common.proto
+wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/connector_sdk.proto
 ```
 
 6. Run tests
@@ -69,7 +69,7 @@ wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fiv
 gradle build
 ```
 
-## Steps for using Connector tester
+## Steps for using Source Connector tester
 
 1. Start SingleStore cluster
    You must insert a valid SingleStore license as SINGLESTORE_LICENSE and a password as
@@ -102,23 +102,23 @@ USE tester;
 CREATE TABLE t(a INT PRIMARY KEY, b INT);
 ```
 
-5. Start Connector server
+5. Start Source Connector server
 
 ```
-wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/common.proto
-wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/production/connector_sdk.proto
+wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/common.proto
+wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/connector_sdk.proto
 gradle jar
-java -jar build/libs/singlestore-fivetran-connector-0.0.3.jar
+java -jar build/libs/singlestore-fivetran-source-connector-0.0.4.jar
 ```
 
 6. Update the `./tester/configuration.json` file with your credentials
 
 7. Run the tester by following instructions
-   from [here](https://github.com/fivetran/fivetran_sdk/blob/main/tools/destination-tester/README.md).
+   from [here](https://github.com/fivetran/fivetran_sdk/blob/v2/tools/source-connector-tester/README.md).
    As a command use you can use
 
 ```
-docker run --mount type=bind,source=<PATH TO PROJECT>/tester,target=/data -a STDIN -a STDOUT -a STDERR -it -e GRPC_HOSTNAME=localhost --network=host fivetrandocker/fivetran-sdk-tester:0.24.0729.001 --tester-type source --port 55051
+docker run --mount type=bind,source=<PATH TO PROJECT>/tester,target=/data -a STDIN -a STDOUT -a STDERR -it -e GRPC_HOSTNAME=localhost --network=host us-docker.pkg.dev/build-286712/public-docker-us/sdktesters-v2/sdk-tester:<tag> --tester-type source --port 50051
 ```
 
 8. Update table

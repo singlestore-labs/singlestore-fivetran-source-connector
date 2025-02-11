@@ -1,4 +1,4 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

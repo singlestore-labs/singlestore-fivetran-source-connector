@@ -1,14 +1,15 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.protobuf.ByteString;
-import fivetran_sdk.Column;
-import fivetran_sdk.DataType;
-import fivetran_sdk.DecimalParams;
-import fivetran_sdk.Schema;
-import fivetran_sdk.SchemaList;
-import fivetran_sdk.Table;
-import fivetran_sdk.ValueType;
+import fivetran_sdk.v2.Column;
+import fivetran_sdk.v2.DataType;
+import fivetran_sdk.v2.DataTypeParams;
+import fivetran_sdk.v2.DecimalParams;
+import fivetran_sdk.v2.Schema;
+import fivetran_sdk.v2.SchemaList;
+import fivetran_sdk.v2.Table;
+import fivetran_sdk.v2.ValueType;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -72,7 +73,7 @@ public class SingleStoreConnection {
       connectionProps.put("defaultFetchSize", "1");
       connectionProps.put("connectionAttributes",
           String.format("_connector_name:%s,_connector_version:%s",
-              "SingleStore Fivetran Connector", VersionProvider.getVersion()));
+              "SingleStore Fivetran Source Connector", VersionProvider.getVersion()));
 
       connectionProps.put("sslMode", conf.sslMode());
       if (!conf.sslMode().equals("disable")) {
@@ -152,9 +153,9 @@ public class SingleStoreConnection {
             .setPrimaryKey(
                 primaryKeyColumns.contains(columnsRS.getString("COLUMN_NAME")));
         if (c.getType() == DataType.DECIMAL) {
-          c.setDecimal(DecimalParams.newBuilder()
+          c.setParams(DataTypeParams.newBuilder().setDecimal(DecimalParams.newBuilder()
               .setScale(columnsRS.getInt("DECIMAL_DIGITS"))
-              .setPrecision(columnsRS.getInt("COLUMN_SIZE")).build());
+              .setPrecision(columnsRS.getInt("COLUMN_SIZE")).build()));
         }
         columns.add(c.build());
       }

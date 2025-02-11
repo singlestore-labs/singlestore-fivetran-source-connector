@@ -1,4 +1,4 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -13,9 +13,9 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SingleStoreConnector {
+public class SingleStoreSourceConnector {
 
-  private static final Logger logger = LoggerFactory.getLogger(SingleStoreConnector.class);
+  private static final Logger logger = LoggerFactory.getLogger(SingleStoreSourceConnector.class);
 
   public static void main(String[] args) throws InterruptedException, IOException, ParseException {
     Options options = new Options();
@@ -30,7 +30,7 @@ public class SingleStoreConnector {
       cmd = parser.parse(options, args);
     } catch (ParseException e) {
       logger.error("Failed to parse arguments", e);
-      formatter.printHelp("singlestore-fivetran-connector", options);
+      formatter.printHelp("singlestore-fivetran-source-connector", options);
 
       throw e;
     }
@@ -41,19 +41,19 @@ public class SingleStoreConnector {
       port = Integer.parseInt(portStr);
     } catch (NumberFormatException e) {
       logger.warn("Failed to parse --port option", e);
-      formatter.printHelp("singlestore-fivetran-connector", options);
+      formatter.printHelp("singlestore-fivetran-source-connector", options);
 
       throw e;
     }
 
     logger.info(
-        String.format("Starting Connector gRPC server (version %s) which listens port %d",
+        String.format("Starting Source Connector gRPC server (version %s) which listens port %d",
             VersionProvider.getVersion(), port));
     Server server = ServerBuilder.forPort(port)
-        .addService(new SingleStoreConnectorServiceImpl()).build();
+        .addService(new SingleStoreSourceConnectorServiceImpl()).build();
 
     server.start();
-    logger.info("Connector gRPC server started");
+    logger.info("Source Connector gRPC server started");
     server.awaitTermination();
   }
 }
