@@ -1,4 +1,4 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import java.sql.ResultSet;
 import java.util.concurrent.ExecutionException;
@@ -7,8 +7,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TimedResultSet implements AutoCloseable {
 

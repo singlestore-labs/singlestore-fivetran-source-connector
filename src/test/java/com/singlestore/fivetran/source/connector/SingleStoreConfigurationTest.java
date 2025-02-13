@@ -1,4 +1,4 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -11,7 +11,8 @@ public class SingleStoreConfigurationTest extends IntegrationTestBase {
   @Test
   public void defaultValues() throws Exception {
     SingleStoreConfiguration conf = new SingleStoreConfiguration(ImmutableMap.of("host", host,
-        "port", port, "user", user, "database", database, "table", "defaultValues", "password", "", "driver.parameters", "",
+        "port", port, "user", user, "database", database, "table", "defaultValues", "password", "",
+        "driver.parameters", "",
         "ssl.mode", "", "ssl.server.cert", "", "batch.size", ""));
     assertEquals(host, conf.host());
     assertEquals(Integer.valueOf(port), conf.port());
@@ -158,7 +159,8 @@ public class SingleStoreConfigurationTest extends IntegrationTestBase {
         "-----END CERTIFICATE-----\n";
 
     SingleStoreConfiguration conf = new SingleStoreConfiguration(ImmutableMap.of("host", host,
-        "port", port, "user", user, "database", database, "table", "sslCert", "password", "", "driver.parameters", "",
+        "port", port, "user", user, "database", database, "table", "sslCert", "password", "",
+        "driver.parameters", "",
         "ssl.mode", "", "ssl.server.cert", cert.replace("\n", " ")));
     assertEquals(cert, conf.sslServerCert());
   }

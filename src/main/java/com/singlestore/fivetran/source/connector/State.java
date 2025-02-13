@@ -1,4 +1,4 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;

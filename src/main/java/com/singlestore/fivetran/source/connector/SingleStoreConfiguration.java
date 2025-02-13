@@ -1,8 +1,9 @@
-package com.singlestore.fivetran.connector;
+package com.singlestore.fivetran.source.connector;
 
 import java.util.Map;
 
 public class SingleStoreConfiguration {
+
   private final String host;
   private final Integer port;
   private final String database;
