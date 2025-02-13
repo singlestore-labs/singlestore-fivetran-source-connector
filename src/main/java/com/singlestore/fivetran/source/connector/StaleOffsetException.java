@@ -3,7 +3,7 @@ package com.singlestore.fivetran.source.connector;
 public class StaleOffsetException extends Exception {
 
   public StaleOffsetException(Exception cause) {
-    super("Offset the connector is trying to resume from is considered stale.\n"
+    super("The offset the connector is trying to resume from is considered stale.\n"
             + "Therefore, the connector cannot resume streaming.\n"
             + "The only way to recover is to re-sync all historical data. For more details, refer to: https://fivetran.com/docs/connectors/troubleshooting/re-sync-a-connector\n"
             + "To help prevent failures related to stale offsets in future, you can increase the value of the following engine variables in SingleStore:\n"
