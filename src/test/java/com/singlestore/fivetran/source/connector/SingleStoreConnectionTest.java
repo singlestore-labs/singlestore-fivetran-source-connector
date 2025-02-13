@@ -258,6 +258,54 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
         DecimalParams.newBuilder().build()
     );
 
+    List<Integer> stringByteLength = Arrays.asList(
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        16777215,
+        0,
+        400,
+        0,
+        2147483647,
+        65535,
+        255,
+        0,
+        0,
+        0,
+        0,
+        0,
+        16,
+        32,
+        2147483647,
+        2147483647,
+        0,
+        0,
+        0
+    );
+
     List<DataType> types = Arrays.asList(
         DataType.SHORT,
         DataType.SHORT,
@@ -308,8 +356,10 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
 
     for (int i = 0; i < columns.size(); i++) {
       Column column = columns.get(i);
+      Integer a = column.getParams().getStringByteLength();
       assertEquals(columnNames.get(i), column.getName());
       assertEquals(decimalParameters.get(i), column.getParams().getDecimal());
+      assertEquals(stringByteLength.get(i), column.getParams().getStringByteLength());
       assertEquals(types.get(i), column.getType());
       assertEquals(column.getName().equals("InternalId"), column.getPrimaryKey());
     }

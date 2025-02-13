@@ -157,6 +157,19 @@ public class SingleStoreConnection {
               .setScale(columnsRS.getInt("DECIMAL_DIGITS"))
               .setPrecision(columnsRS.getInt("COLUMN_SIZE")).build()));
         }
+        if (c.getType() == DataType.STRING) {
+          String typeName = columnsRS.getString("TYPE_NAME");
+          if (typeName.equals("GEOGRAPHYPOINT") || typeName.equals("GEOGRAPHY")) {
+            c.setParams(DataTypeParams.newBuilder()
+                .setStringByteLength(Integer.MAX_VALUE)
+                .build());
+          } else {
+            c.setParams(DataTypeParams.newBuilder()
+                .setStringByteLength(columnsRS.getInt("CHAR_OCTET_LENGTH"))
+                .build());
+          }
+        }
+
         columns.add(c.build());
       }
     }
