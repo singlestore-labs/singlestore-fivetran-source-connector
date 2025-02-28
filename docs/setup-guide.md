@@ -53,7 +53,7 @@ To authorize Fivetran to connect to your SinlgeStore database, follow these inst
 3. Enable support of OBSERVE queries
 
 ```
-SET enable_observe_queries=1
+SET GLOBAL enable_observe_queries=1
 ```
 
 4. (Optional) Configure `snapshots_to_keep`
