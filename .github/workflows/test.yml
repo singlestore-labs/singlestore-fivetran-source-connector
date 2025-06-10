@@ -1,29 +1,43 @@
 name: Test
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    types: [ opened, synchronize, reopened ]
+  schedule:
+    - cron: "0 0 * * 0"
 
 permissions:
   contents: read
 
 jobs:
-  build:
-
+  fetch-s2-versions:
     runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.get_versions.outputs.versions }}
+    steps:
+      - name: Get supported versions of Singlestore
+        id: get_versions
+        uses: singlestore-labs/singlestore-supported-versions@main
+
+  build:
+    needs: fetch-s2-versions
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        singlestore_version: ${{ fromJson(needs.fetch-s2-versions.outputs.versions) }}
 
     services:
       singlestore:
-        # check for new versions at https://github.com/singlestore-labs/singlestoredb-dev-image/pkgs/container/singlestoredb-dev/versions
-        image: ghcr.io/singlestore-labs/singlestoredb-dev:0.2.35
+        image: ghcr.io/singlestore-labs/singlestoredb-dev:latest
         ports:
           - "3306:3306"
         env:
           # if you want a free SingleStore license for your own use please visit https://www.singlestore.com/cloud-trial/
           SINGLESTORE_LICENSE: ${{ secrets.SINGLESTORE_LICENSE }}
           ROOT_PASSWORD: ${{ secrets.ROOT_PASSWORD }}
+          SINGELSTORE_VERSION: ${{ matrix.singlestore_version }}
+
 
     env:
       ROOT_PASSWORD: ${{ secrets.ROOT_PASSWORD }}
