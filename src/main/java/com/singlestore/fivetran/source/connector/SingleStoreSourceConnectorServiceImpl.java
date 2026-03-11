@@ -316,11 +316,11 @@ public class SingleStoreSourceConnectorServiceImpl extends
       }
 
       logger.info("Sync DONE");
-      responseObserver.onCompleted();
     } catch (Exception e) {
       logger.warn("Sync failed", e);
 
-      if (e.getMessage().toLowerCase().contains("the requested offset is too stale")) {
+      String message = e.getMessage();
+      if (message != null && message.toLowerCase().contains("the requested offset is too stale")) {
         responseObserver.onNext(
             UpdateResponse.newBuilder()
                 .setTask(Task.newBuilder()
@@ -339,11 +339,13 @@ public class SingleStoreSourceConnectorServiceImpl extends
         responseObserver.onNext(
             UpdateResponse.newBuilder()
                 .setTask(Task.newBuilder()
-                    .setMessage(e.getMessage())
+                    .setMessage(message)
                     .build())
                 .build()
         );
       }
     }
+
+    responseObserver.onCompleted();
   }
 }
