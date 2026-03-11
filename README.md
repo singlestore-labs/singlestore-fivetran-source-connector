@@ -8,10 +8,10 @@
 ## Steps for Starting the Server
 
 1. Download proto files.
-   
+
    ```
-   wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/common.proto
-   wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/connector_sdk.proto
+   wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/common.proto
+   wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/connector_sdk.proto
    ```
 
 2. Build the Jar.
@@ -45,7 +45,7 @@
 2. Wait for the database to start.
 
 3. Enable `OBSERVE` queries.
-   
+
    ```
    SET GLOBAL enable_observe_queries = 1;
    ```
@@ -57,10 +57,10 @@
    ```
 
 5. Download proto files.
-   
+
    ```
-   wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/common.proto
-   wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/connector_sdk.proto
+   wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/common.proto
+   wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/connector_sdk.proto
    ```
 
 6. Run tests.
@@ -105,8 +105,8 @@
 5. Start the Source Connector server.
 
    ```
-   wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/common.proto
-   wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/v2/connector_sdk.proto
+   wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/common.proto
+   wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/connector_sdk.proto
    gradle jar
    java -jar build/libs/singlestore-fivetran-source-connector-0.0.4.jar
    ```
@@ -114,7 +114,8 @@
 6. Update the `./tester/configuration.json` file with your credentials.
 
 7. Run the tester using
-   [these](https://github.com/fivetran/fivetran_sdk/blob/v2/tools/source-connector-tester/README.md) instructions.
+   [these](https://github.com/fivetran/fivetran_sdk/blob/v2/tools/source-connector-tester/README.md)
+   instructions.
    Use the following command:
 
    ```

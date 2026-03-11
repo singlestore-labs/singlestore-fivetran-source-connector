@@ -17,6 +17,7 @@ import fivetran_sdk.v2.SchemaSelection;
 import fivetran_sdk.v2.Selection;
 import fivetran_sdk.v2.TableSelection;
 import fivetran_sdk.v2.TablesWithSchema;
+import fivetran_sdk.v2.Task;
 import fivetran_sdk.v2.TestRequest;
 import fivetran_sdk.v2.TestResponse;
 import fivetran_sdk.v2.TextField;
@@ -315,14 +316,34 @@ public class SingleStoreSourceConnectorServiceImpl extends
       }
 
       logger.info("Sync DONE");
+      responseObserver.onCompleted();
     } catch (Exception e) {
-      if (e.getMessage().contains("The requested Offset is too stale")) {
-        responseObserver.onError(new StaleOffsetException(e));
+      logger.warn("Sync failed", e);
+
+      if (e.getMessage().toLowerCase().contains("the requested offset is too stale")) {
+        responseObserver.onNext(
+            UpdateResponse.newBuilder()
+                .setTask(Task.newBuilder()
+                    .setMessage(
+                        "The offset the connector is trying to resume from is considered stale.\n"
+                            + "Therefore, the connector cannot resume streaming.\n"
+                            + "The only way to recover is to re-sync all historical data. For more details, refer to: https://fivetran.com/docs/connectors/troubleshooting/re-sync-a-connector\n"
+                            + "To help prevent failures related to stale offsets in future, you can increase the value of the following engine variables in SingleStore:\n"
+                            + " * 'snapshots_to_keep' - Defines the number of snapshots to keep for backup and replication;\n"
+                            + " * 'snapshot_trigger_size' - Defines the size of transaction logs in bytes, which, when reached, triggers a snapshot that is written to disk.\n"
+                            + "You may also consider increasing the sync frequency. For more information, visit: https://fivetran.com/docs/core-concepts/syncoverview#syncfrequencyandscheduling")
+                    .build())
+                .build()
+        );
       } else {
-        responseObserver.onError(e);
+        responseObserver.onNext(
+            UpdateResponse.newBuilder()
+                .setTask(Task.newBuilder()
+                    .setMessage(e.getMessage())
+                    .build())
+                .build()
+        );
       }
     }
-
-    responseObserver.onCompleted();
   }
 }
