@@ -59,6 +59,29 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
   }
 
   @Test
+  public void checkObserveEnabledTrue() throws Exception {
+    SingleStoreConfiguration conf = getConfig("checkObserveEnabledTrue");
+    SingleStoreConnection conn = new SingleStoreConnection(conf);
+    try (Statement stmt = conn.getConnection().createStatement()) {
+      stmt.execute("SET GLOBAL enable_observe_queries=1");
+    }
+
+    conn.checkObserveEnabled();
+  }
+
+  @Test
+  public void checkObserveEnabledFalse() throws Exception {
+    SingleStoreConfiguration conf = getConfig("checkObserveEnabledFalse");
+    SingleStoreConnection conn = new SingleStoreConnection(conf);
+    try (Statement stmt = conn.getConnection().createStatement()) {
+      stmt.execute("SET GLOBAL enable_observe_queries=0");
+      Assertions.assertThrows(Exception.class, conn::checkObserveEnabled);
+      stmt.execute("SET GLOBAL enable_observe_queries=1");
+    }
+
+  }
+
+  @Test
   public void checkTableExistenceTrue() throws Exception {
     SingleStoreConfiguration conf = getConfig("checkTableExistenceTrue");
     SingleStoreConnection conn = new SingleStoreConnection(conf);

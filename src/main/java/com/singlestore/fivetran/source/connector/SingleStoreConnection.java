@@ -118,6 +118,24 @@ public class SingleStoreConnection {
     }
   }
 
+  public void checkObserveEnabled() throws Exception {
+    try (Statement stmt = getConnection().createStatement();) {
+      ResultSet rs = stmt.executeQuery("SELECT @@enable_observe_queries");
+      try {
+        if (!rs.next()) {
+          throw new Exception("Unable to read @@enable_observe_queries from server response");
+        }
+
+        if (!rs.getBoolean(1)) {
+          throw new Exception(
+              "OBSERVE queries are disabled; Run 'SET GLOBAL enable_observe_queries=1' to enable them");
+        }
+      } finally {
+        rs.close();
+      }
+    }
+  }
+
   public static String escapeTable(String database, String table) {
     return escapeIdentifier(database) + "." + escapeIdentifier(table);
   }
