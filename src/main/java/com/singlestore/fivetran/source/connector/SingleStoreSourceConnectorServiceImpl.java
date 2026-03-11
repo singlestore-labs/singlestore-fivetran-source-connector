@@ -130,7 +130,11 @@ public class SingleStoreSourceConnectorServiceImpl extends
         .addAllTests(Arrays.asList(
             ConfigurationTest.newBuilder().setName("connect").setLabel("Tests connection").build(),
             ConfigurationTest.newBuilder().setName("table").setLabel("Tests table existence")
-                .build()))
+                .build(),
+            ConfigurationTest.newBuilder().setName("observe")
+                .setLabel("Tests enablement of OBSERVE queries")
+                .build()
+        ))
         .build());
 
     responseObserver.onCompleted();
@@ -148,6 +152,8 @@ public class SingleStoreSourceConnectorServiceImpl extends
         conn.checkConnection();
       } else if (testName.equals("table")) {
         conn.checkTableExistence();
+      } else if (testName.equals("observe")) {
+        conn.checkObserveEnabled();
       }
     } catch (Exception e) {
       logger.warn("Test failed", e);
