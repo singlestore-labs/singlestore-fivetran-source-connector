@@ -128,7 +128,10 @@ public class SingleStoreConnection {
 
         if (!rs.getBoolean(1)) {
           throw new Exception(
-              "OBSERVE queries are disabled; Run 'SET GLOBAL enable_observe_queries=1' to enable them");
+              String.format(
+                  "OBSERVE queries are disabled; Run 'SET GLOBAL enable_observe_queries=1; SNAPSHOT DATABASE %s' to enable them",
+                  escapeIdentifier(stmt.getConnection().getCatalog())
+              ));
         }
       } finally {
         rs.close();

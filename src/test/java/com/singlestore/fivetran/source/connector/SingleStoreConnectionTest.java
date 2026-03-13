@@ -75,7 +75,11 @@ public class SingleStoreConnectionTest extends IntegrationTestBase {
     SingleStoreConnection conn = new SingleStoreConnection(conf);
     try (Statement stmt = conn.getConnection().createStatement()) {
       stmt.execute("SET GLOBAL enable_observe_queries=0");
-      Assertions.assertThrows(Exception.class, conn::checkObserveEnabled);
+      Exception ex = Assertions.assertThrows(Exception.class, conn::checkObserveEnabled);
+      assertTrue(ex.getMessage().contains(
+          String.format(
+              "OBSERVE queries are disabled; Run 'SET GLOBAL enable_observe_queries=1; SNAPSHOT DATABASE `%s`' to enable them",
+              database)));
       stmt.execute("SET GLOBAL enable_observe_queries=1");
     }
 
