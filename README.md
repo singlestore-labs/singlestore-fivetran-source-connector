@@ -23,7 +23,7 @@
 3. Run the Jar.
 
    ```
-   java -jar build/libs/singlestore-fivetran-source-connector-0.0.5.jar
+   java -jar build/libs/singlestore-fivetran-source-connector-0.0.6.jar
    ```
 
 ## Steps for Running Java Tests
@@ -108,7 +108,7 @@
    wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/common.proto
    wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/connector_sdk.proto
    gradle jar
-   java -jar build/libs/singlestore-fivetran-source-connector-0.0.5.jar
+   java -jar build/libs/singlestore-fivetran-source-connector-0.0.6.jar
    ```
 
 6. Update the `./tester/configuration.json` file with your credentials.
