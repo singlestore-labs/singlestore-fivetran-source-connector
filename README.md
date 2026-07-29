@@ -14,16 +14,16 @@
    wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/connector_sdk.proto
    ```
 
-2. Build the Jar.
+2. Build the Jar (replace version with yours).
 
    ```
-   gradle jar
+   ./gradlew jar -Pversion=<version>
    ```
 
-3. Run the Jar.
+3. Run the Jar (replace version with yours).
 
    ```
-   java -jar build/libs/singlestore-fivetran-source-connector-0.0.6.jar
+   java -jar build/libs/singlestore-fivetran-source-connector-<version>.jar
    ```
 
 ## Steps for Running Java Tests
@@ -63,10 +63,10 @@
    wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/connector_sdk.proto
    ```
 
-6. Run tests.
+6. Run tests (replace version with yours).
 
    ```
-   gradle build
+   ./gradlew build -Pversion=<version>
    ```
 
 ## Steps for Using Source Connector Tester
@@ -102,13 +102,13 @@
    CREATE TABLE t(a INT PRIMARY KEY, b INT);
    ```
 
-5. Start the Source Connector server.
+5. Start the Source Connector server. (replace version with yours)
 
    ```
    wget -O src/main/proto/common.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/common.proto
    wget -O src/main/proto/connector_sdk.proto https://raw.githubusercontent.com/fivetran/fivetran_sdk/main/connector_sdk.proto
-   gradle jar
-   java -jar build/libs/singlestore-fivetran-source-connector-0.0.6.jar
+   ./gradlew jar -Pversion=<version>
+   java -jar build/libs/singlestore-fivetran-source-connector-<version>.jar
    ```
 
 6. Update the `./tester/configuration.json` file with your credentials.
@@ -134,3 +134,34 @@
 9. Check the content of `./tester/warehouse.db` file.
    using [DuckDB](https://duckdb.org/docs/api/cli/overview.html) CLI
    or [DBeaver](https://duckdb.org/docs/guides/sql_editors/dbeaver)
+
+## Release process
+
+To release a new version:
+
+1. Push a version tag using semantic versioning with a `v` prefix (`v<major>.<minor>.<patch>`, for example `v1.2.3`):
+
+   ```bash
+   git tag v1.0.1
+   git push origin v1.0.1
+   ```
+
+   The package version is derived from the tag (the leading `v` is stripped). This triggers the [CI workflow](.github/workflows/ci.yml), which:
+
+   - Runs the test matrix
+   - Builds the connector JAR with the release version
+   - Creates a [GitHub Release](https://github.com/singlestore-labs/singlestore-fivetran-source-connector/releases) with auto-generated release notes and the JAR (`singlestore-fivetran-source-connector-<version>.jar`)
+
+2. After the GitHub Release is published, post a message in the `#ext-fivetran-singlestore` Slack channel asking Fivetran to upload the updated connector. Replace `<version>` with the release version (for example, `1.2.9` for tag `v1.2.9`):
+
+   ```
+   Hi,
+
+   We have released SingleStore Fivetran Source Connector <version>.
+   GitHub Release: https://github.com/singlestore-labs/singlestore-fivetran-source-connector/releases/tag/v<version>
+
+   Could you please upload the updated version?
+
+   Thanks,
+   <Your name>
+   ```
