@@ -127,14 +127,14 @@ jobs:
             exit 1
           fi
           # setup-java installs the JDK as root; the runner user cannot write cacerts.
-          sudo keytool -importcert -noprompt \
+          sudo "$JAVA_HOME/bin/keytool" -importcert -noprompt \
             -alias microsoft-identity-verification-root-ca-2020 \
-            -cacerts \
+            -keystore "$JAVA_HOME/lib/security/cacerts" \
             -storepass changeit \
             -file msroot2020.crt
       - name: Verify signed JARs
         if: ${{ success() }}
-        run: jarsigner -verify "build/libs/singlestore-fivetran-source-connector-${{ env.RELEASE_VERSION }}.jar"
+        run: jarsigner -verify "build/libs/singlestore-fivetran-source-connector-${{ env.RELEASE_VERSION }}.jar" -strict
       - name: Release on GitHub
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
